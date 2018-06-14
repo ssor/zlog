@@ -10,9 +10,9 @@ type JSONFormatter struct {
 	TimestampFormat string
 }
 
-func (f *JSONFormatter) Format(entry *Entry) ([]byte, error) {
-	data := make(Fields, len(entry.Data)+3)
-	for k, v := range entry.Data {
+func (f *JSONFormatter) Format(entry FormatterInput) ([]byte, error) {
+	data := make(Fields, len(entry.GetData())+3)
+	for k, v := range entry.GetData() {
 		switch v := v.(type) {
 		case error:
 			// Otherwise errors are ignored by `encoding/json`
@@ -29,9 +29,9 @@ func (f *JSONFormatter) Format(entry *Entry) ([]byte, error) {
 		timestampFormat = DefaultTimestampFormat
 	}
 
-	data["time"] = entry.Time.Format(timestampFormat)
-	data["msg"] = entry.Message
-	data["level"] = entry.Level.String()
+	data["time"] = entry.GetTime().Format(timestampFormat)
+	data["msg"] = entry.GetMessage()
+	data["level"] = entry.GetLevel().String()
 
 	serialized, err := json.Marshal(data)
 	if err != nil {

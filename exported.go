@@ -2,8 +2,6 @@ package zlog
 
 import (
     "io"
-    "bytes"
-    "encoding/json"
     "log"
 )
 
@@ -81,6 +79,26 @@ func WithField(key string, value interface{}) *Entry {
 // or Panic on the Entry it returns.
 func WithFields(fields Fields) *Entry {
     return std.WithFields(fields)
+}
+
+func WithJsonRaw(bs []byte) *Entry {
+    return std.WithJsonRaw(bs)
+}
+
+func AddFields(args ...interface{}) *Entry {
+    if len(args) <= 0 {
+        return WithFields(map[string]interface{}{})
+    }
+
+    if len(args)%2 != 0 {
+        args = append(args, "")
+    }
+    max := len(args)/2 - 1
+    data := make(map[string]interface{})
+    for i := 0; i <= max; i = i + 2 {
+        data[args[i].(string)] = args[i+1]
+    }
+    return WithFields(data)
 }
 
 // Debug logs a message at level Debug on the standard logger.
@@ -205,14 +223,4 @@ func Fatalln(args ...interface{}) {
 
 func PrettyJson(j []byte) {
     std.Println(prettyJSON(j))
-}
-
-func prettyJSON(js []byte) string {
-    var buf bytes.Buffer
-    err := json.Indent(&buf, js, "", "  ")
-    if err != nil {
-        return "JSON parse error: " + err.Error()
-    }
-    s := string(buf.Bytes())
-    return s
 }

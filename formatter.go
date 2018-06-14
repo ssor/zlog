@@ -1,8 +1,20 @@
 package zlog
 
-import "time"
+import (
+    "time"
+    "bytes"
+)
 
 const DefaultTimestampFormat = time.RFC3339
+
+type FormatterInput interface {
+    GetBuffer() *bytes.Buffer
+    GetData() Fields
+    GetTime() time.Time
+    GetMessage() string
+    GetLevel() Level
+    GetJsonRaw() []byte
+}
 
 // The Formatter interface is used to implement a custom Formatter. It takes an
 // `Entry`. It exposes all the fields, including the default ones:
@@ -15,7 +27,7 @@ const DefaultTimestampFormat = time.RFC3339
 // `entry.Data`. Format is expected to return an array of bytes which are then
 // logged to `logger.Out`.
 type Formatter interface {
-	Format(*Entry) ([]byte, error)
+    Format(input FormatterInput) ([]byte, error)
 }
 
 // This is to not silently overwrite `time`, `msg` and `level` fields when
@@ -31,15 +43,15 @@ type Formatter interface {
 // It's not exported because it's still using Data in an opinionated way. It's to
 // avoid code duplication between the two default formatters.
 func prefixFieldClashes(data Fields) {
-	if t, ok := data["time"]; ok {
-		data["fields.time"] = t
-	}
+    if t, ok := data["time"]; ok {
+        data["fields.time"] = t
+    }
 
-	if m, ok := data["msg"]; ok {
-		data["fields.msg"] = m
-	}
+    if m, ok := data["msg"]; ok {
+        data["fields.msg"] = m
+    }
 
-	if l, ok := data["level"]; ok {
-		data["fields.level"] = l
-	}
+    if l, ok := data["level"]; ok {
+        data["fields.level"] = l
+    }
 }
