@@ -93,7 +93,7 @@ func AddFields(args ...interface{}) *Entry {
     if len(args)%2 != 0 {
         args = append(args, "")
     }
-    max := len(args)/2 - 1
+    max := len(args) - 2
     data := make(map[string]interface{})
     for i := 0; i <= max; i = i + 2 {
         data[args[i].(string)] = args[i+1]
