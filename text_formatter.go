@@ -103,6 +103,11 @@ func (f *TextFormatter) Format(entry FormatterInput) ([]byte, error) {
             }
             fmt.Fprintf(b, "\n              - %-8s = %+v", key, value)
         }
+
+        jsonRaw := entry.GetJsonRaw()
+        if jsonRaw != nil {
+            fmt.Fprintf(b, "\n%s", prettyJSON(jsonRaw))
+        }
     }
 
     b.WriteByte('\n')
