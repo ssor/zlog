@@ -27,7 +27,7 @@ type FormatterInput interface {
 // `entry.Data`. Format is expected to return an array of bytes which are then
 // logged to `logger.Out`.
 type Formatter interface {
-    Format(input FormatterInput) ([]byte, error)
+    Format(input FormatterInput, callDepth int) ([]byte, error)
 }
 
 // This is to not silently overwrite `time`, `msg` and `level` fields when

@@ -57,7 +57,7 @@ type TextFormatter struct {
     DisableSorting bool
 }
 
-func (f *TextFormatter) Format(entry FormatterInput) ([]byte, error) {
+func (f *TextFormatter) Format(entry FormatterInput, callDepth int) ([]byte, error) {
     var b *bytes.Buffer
     var keys []string = make([]string, 0, len(entry.GetData()))
     for k := range entry.GetData() {
@@ -82,7 +82,7 @@ func (f *TextFormatter) Format(entry FormatterInput) ([]byte, error) {
     if timestampFormat == "" {
         timestampFormat = DefaultTimestampFormat
     }
-    fileInfo := formatShortFile()
+    fileInfo := formatShortFile(callDepth)
 
     if isColored {
         f.printColored(b, entry, keys, timestampFormat, fileInfo)
@@ -114,8 +114,8 @@ func (f *TextFormatter) Format(entry FormatterInput) ([]byte, error) {
     return b.Bytes(), nil
 }
 
-func formatShortFile() string {
-    _, file, line, ok := runtime.Caller(4)
+func formatShortFile(callDepth int) string {
+    _, file, line, ok := runtime.Caller(callDepth)
     if !ok {
         file = "???"
         line = 0

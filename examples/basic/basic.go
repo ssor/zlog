@@ -7,7 +7,7 @@ import (
 var log = zlog.New()
 
 func init() {
-    log.Formatter = new(zlog.JSONFormatter)
+    //log.Formatter = new(zlog.JSONFormatter)
     log.Formatter = new(zlog.TextFormatter) // default
     log.Level = zlog.DebugLevel
 }
@@ -24,7 +24,11 @@ func main() {
             }).Fatal("The ice breaks!")
         }
     }()
-    zlog.SetPrintLineNumber(true)
+
+    zlog.SetLevel(zlog.DebugLevel)
+    zlog.Debug("debug test")
+    zlog.Info("info test")
+
     log.WithFields(zlog.Fields{
         "animal": "walrus",
         "number": 8,

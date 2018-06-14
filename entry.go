@@ -8,6 +8,7 @@ import (
     "time"
 )
 
+var entryCallDepth = 4
 var bufferPool *sync.Pool
 
 func init() {
@@ -57,7 +58,7 @@ func NewEntry(logger *Logger) *Entry {
 // Returns the string representation from the reader and ultimately the
 // formatter.
 func (entry *Entry) String() (string, error) {
-    serialized, err := entry.Logger.Formatter.Format(entry)
+    serialized, err := entry.Logger.Formatter.Format(entry, entryCallDepth)
     if err != nil {
         return "", err
     }
@@ -93,7 +94,7 @@ func (entry *Entry) WithFields(fields Fields) *Entry {
 
 // This function is not declared with a pointer value because otherwise
 // race conditions will occur when using multiple goroutines
-func (entry Entry) log(level Level, msg string) {
+func (entry Entry) log(callDepth int, level Level, msg string) {
     var buffer *bytes.Buffer
     entry.Time = time.Now()
     entry.Level = level
@@ -108,7 +109,7 @@ func (entry Entry) log(level Level, msg string) {
     buffer.Reset()
     defer bufferPool.Put(buffer)
     entry.Buffer = buffer
-    serialized, err := entry.Logger.Formatter.Format(&entry)
+    serialized, err := entry.Logger.Formatter.Format(&entry, callDepth)
     entry.Buffer = nil
     if err != nil {
         entry.Logger.mu.Lock()
@@ -133,7 +134,7 @@ func (entry Entry) log(level Level, msg string) {
 
 func (entry *Entry) Debug(args ...interface{}) {
     if entry.Logger.Level >= DebugLevel {
-        entry.log(DebugLevel, fmt.Sprint(args...))
+        entry.log(entryCallDepth, DebugLevel, fmt.Sprint(args...))
     }
 }
 
@@ -143,13 +144,13 @@ func (entry *Entry) Print(args ...interface{}) {
 
 func (entry *Entry) Info(args ...interface{}) {
     if entry.Logger.Level >= InfoLevel {
-        entry.log(InfoLevel, fmt.Sprint(args...))
+        entry.log(entryCallDepth, InfoLevel, fmt.Sprint(args...))
     }
 }
 
 func (entry *Entry) Warn(args ...interface{}) {
     if entry.Logger.Level >= WarnLevel {
-        entry.log(WarnLevel, fmt.Sprint(args...))
+        entry.log(entryCallDepth, WarnLevel, fmt.Sprint(args...))
     }
 }
 
@@ -159,20 +160,20 @@ func (entry *Entry) Warning(args ...interface{}) {
 
 func (entry *Entry) Error(args ...interface{}) {
     if entry.Logger.Level >= ErrorLevel {
-        entry.log(ErrorLevel, fmt.Sprint(args...))
+        entry.log(entryCallDepth, ErrorLevel, fmt.Sprint(args...))
     }
 }
 
 func (entry *Entry) Fatal(args ...interface{}) {
     if entry.Logger.Level >= FatalLevel {
-        entry.log(FatalLevel, fmt.Sprint(args...))
+        entry.log(entryCallDepth, FatalLevel, fmt.Sprint(args...))
     }
     Exit(1)
 }
 
 func (entry *Entry) Panic(args ...interface{}) {
     if entry.Logger.Level >= PanicLevel {
-        entry.log(PanicLevel, fmt.Sprint(args...))
+        entry.log(entryCallDepth, PanicLevel, fmt.Sprint(args...))
     }
     panic(fmt.Sprint(args...))
 }
