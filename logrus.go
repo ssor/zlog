@@ -16,17 +16,17 @@ type Level uint8
 func (level Level) String() string {
     switch level {
     case DebugLevel:
-        return "debug"
+        return "     debug"
     case InfoLevel:
-        return "info"
+        return "---> info"
     case WarnLevel:
-        return "warning"
+        return "===> warning"
     case ErrorLevel:
-        return "error"
+        return "**** error"
     case FatalLevel:
-        return "fatal"
+        return "**** fatal"
     case PanicLevel:
-        return "panic"
+        return "**** panic"
     }
 
     return "unknown"
