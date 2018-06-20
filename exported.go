@@ -131,11 +131,6 @@ func Warn(args ...interface{}) {
     //WithFields(nil).Warn(args)
 }
 
-// Warning logs a message at level Warn on the standard logger.
-func Warning(args ...interface{}) {
-    std.Warning(args...)
-}
-
 // Error logs a message at level Error on the standard logger.
 func Error(args ...interface{}) {
     std.Error(args...)

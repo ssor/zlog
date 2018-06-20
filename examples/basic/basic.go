@@ -26,6 +26,7 @@ func main() {
     }()
 
     zlog.SetLevel(zlog.DebugLevel)
+    zlog.SetLevel(zlog.InfoLevel)
     zlog.Debug("debug test")
     zlog.Info("info test")
 
