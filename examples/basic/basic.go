@@ -51,6 +51,15 @@ func main() {
     jsonRaw := []byte(`{"actions":{},"baseType":"error","code":"Forbidden","links":{},"message":"projects.management.cattle.io \"p-t4hzw\" is forbidden: User \"u-btx2s\" cannot get projects.management.cattle.io in the namespace \"c-g9v62\"","status":403,"type":"error"}`)
     log.WithJsonRaw(jsonRaw).Debug("try json print")
 
+    obj := map[string]interface{}{
+        "level1": map[string]interface{}{
+            "level2":   "abc",
+            "level2-1": 10000,
+        },
+        "level1-1": 10000,
+    }
+    log.WithStruct(obj).Debug("try struct print")
+
     log.WithFields(zlog.Fields{
         "animal": "orca",
         "size":   9009,

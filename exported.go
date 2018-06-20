@@ -3,6 +3,7 @@ package zlog
 import (
     "io"
     "log"
+    "encoding/json"
 )
 
 var (
@@ -71,6 +72,14 @@ func WithField(key string, value interface{}) *Entry {
     return std.WithField(key, value)
 }
 
+func WithStruct(value interface{}) *Entry {
+    bs, err := json.Marshal(value)
+    if err != nil {
+        return WithError(err)
+    }
+    return WithJsonRaw(bs)
+}
+
 // WithFields creates an entry from the standard logger and adds multiple
 // fields to it. This is simply a helper for `WithField`, invoking it
 // once for each field.
@@ -119,6 +128,7 @@ func Info(args ...interface{}) {
 // Warn logs a message at level Warn on the standard logger.
 func Warn(args ...interface{}) {
     std.Warn(args...)
+    //WithFields(nil).Warn(args)
 }
 
 // Warning logs a message at level Warn on the standard logger.

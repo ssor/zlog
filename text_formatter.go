@@ -102,7 +102,7 @@ func (f *TextFormatter) Format(entry FormatterInput, callDepth int) ([]byte, err
             if len(value) > 128 {
                 value = value[:128] + "..."
             }
-            fmt.Fprintf(b, "\n              - %-8s = %+v", key, value)
+            fmt.Fprintf(b, "\n            - %-8s = %+v", key, value)
         }
 
         jsonRaw := entry.GetJsonRaw()
@@ -158,7 +158,7 @@ func (f *TextFormatter) printColored(b *bytes.Buffer, entry FormatterInput, keys
         if len(value) > 128 {
             value = value[:128] + "..."
         }
-        fmt.Fprintf(b, "\n              \x1b[%dm- %-8s = %+v \x1b[0m", gray, k, value)
+        fmt.Fprintf(b, "\n            \x1b[%dm- %-8s = %+v \x1b[0m", gray, k, value)
     }
 
     jsonRaw := entry.GetJsonRaw()

@@ -6,6 +6,7 @@ import (
     "os"
     "regexp"
     "sync"
+    "encoding/json"
 )
 
 var loggerCallDepth = 5
@@ -88,6 +89,14 @@ func (logger *Logger) newEntry() *Entry {
 
 func (logger *Logger) releaseEntry(entry *Entry) {
     logger.entryPool.Put(entry)
+}
+
+func (logger *Logger) WithStruct(value interface{}) *Entry {
+    bs, err := json.Marshal(value)
+    if err != nil {
+        return WithError(err)
+    }
+    return logger.WithJsonRaw(bs)
 }
 
 func (logger *Logger) WithJsonRaw(bs []byte) *Entry {
