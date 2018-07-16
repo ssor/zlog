@@ -57,9 +57,30 @@ type TextFormatter struct {
     DisableSorting bool
 }
 
+func dumpStacks() {
+    buf := make([]byte, 16384)
+    buf = buf[:runtime.Stack(buf, true)]
+    results := bytes.Split(buf, []byte{0xa})
+    //spew.Dump(results)
+    if len(results) > 6 {
+        fmt.Println("=== BEGIN goroutine stack dump ===")
+        for i := 6; i < len(results); i += 1 {
+            if len(results[i]) <= 0 { //do not print all goroutine stacks
+                break
+            }
+            if i%2 == 0 { //just print code line
+                fmt.Printf("%d: %s\n", i/2, results[i])
+            }
+        }
+        fmt.Println("=== END goroutine stack dump ===")
+    } else {
+        fmt.Println("=== no stack to print ===")
+    }
+}
+
 func (f *TextFormatter) Format(entry FormatterInput, callDepth int) ([]byte, error) {
     var b *bytes.Buffer
-    var keys []string = make([]string, 0, len(entry.GetData()))
+    var keys = make([]string, 0, len(entry.GetData()))
     for k := range entry.GetData() {
         keys = append(keys, k)
     }
@@ -82,27 +103,31 @@ func (f *TextFormatter) Format(entry FormatterInput, callDepth int) ([]byte, err
     if timestampFormat == "" {
         timestampFormat = DefaultTimestampFormat
     }
-    fileInfo := formatShortFile(callDepth)
-
+    //fileInfo := formatShortFile(callDepth)
+    //isColored = false
     if isColored {
-        f.printColored(b, entry, keys, timestampFormat, fileInfo)
+        f.printColored(b, entry, keys, timestampFormat)
     } else {
-        if !f.DisableTimestamp {
-            f.appendKeyValue(b, "time", entry.GetTime().Format(timestampFormat))
-        }
-        f.appendKeyValue(b, "level", entry.GetLevel().String())
-        if entry.GetMessage() != "" {
-            f.appendKeyValue(b, "msg", entry.GetMessage())
-        }
-        f.appendKeyValue(b, "", fileInfo)
+        //f.appendKeyValue(b, "level", entry.GetLevel().String())
+
+        fmt.Fprintf(b, "%s%-44s  (%s)[%s]", entry.GetLevel().String(), entry.GetMessage(), entry.GetData()[moduleKey], entry.GetTime().Format(timestampFormat))
+        //if entry.GetMessage() != "" {
+        //    f.appendKeyValue(b, "msg", entry.GetMessage())
+        //}
+        //f.appendKeyValue(b, "", fileInfo)
+        //f.appendKeyValue(b, "path", entry.GetData()[moduleKey])
+
+        //if !f.DisableTimestamp {
+        //    f.appendKeyValue(b, "time", entry.GetTime().Format(timestampFormat))
+        //}
 
         for _, key := range keys {
+            if key == moduleKey {
+                continue
+            }
             //f.appendKeyValue(b, key, )
             value := fmt.Sprintf("%+v", entry.GetData()[key])
-            if len(value) > 128 {
-                value = value[:128] + "..."
-            }
-            fmt.Fprintf(b, "\n            - %-8s = %+v", key, value)
+            fmt.Fprintf(b, "\n     - %-8s = %+v", key, tripHeadAndTail(value, 128))
         }
 
         jsonRaw := entry.GetJsonRaw()
@@ -115,25 +140,27 @@ func (f *TextFormatter) Format(entry FormatterInput, callDepth int) ([]byte, err
     return b.Bytes(), nil
 }
 
-func formatShortFile(callDepth int) string {
-    _, file, line, ok := runtime.Caller(callDepth)
-    if !ok {
-        file = "???"
-        line = 0
-        return "???:0"
-    }
+//
+//func formatShortFile(callDepth int) string {
+//    _, file, line, ok := runtime.Caller(callDepth)
+//    if !ok {
+//        file = "???"
+//        line = 0
+//        return "???:0"
+//    }
+//
+//    short := ""
+//    for i := len(file) - 1; i > 0; i-- {
+//        if file[i] == '/' {
+//            short = file[i+1:]
+//            break
+//        }
+//    }
+//    //DumpStacks()
+//    return fmt.Sprintf(" [%s:%-3d]", short, line)
+//}
 
-    short := ""
-    for i := len(file) - 1; i > 0; i-- {
-        if file[i] == '/' {
-            short = file[i+1:]
-            break
-        }
-    }
-    return fmt.Sprintf("%s:%-3d", short, line)
-}
-
-func (f *TextFormatter) printColored(b *bytes.Buffer, entry FormatterInput, keys []string, timestampFormat, fileInfo string) {
+func (f *TextFormatter) printColored(b *bytes.Buffer, entry FormatterInput, keys []string, timestampFormat string) {
     var levelColor int
     switch entry.GetLevel() {
     case DebugLevel:
@@ -146,25 +173,34 @@ func (f *TextFormatter) printColored(b *bytes.Buffer, entry FormatterInput, keys
         levelColor = blue
     }
 
-    levelText := strings.ToUpper(entry.GetLevel().String())[0:4]
+    levelText := strings.ToUpper(entry.GetLevel().String())
 
     if !f.FullTimestamp {
-        fmt.Fprintf(b, "\x1b[%dm %s[%04d] %-44s %s \x1b[0m", levelColor, levelText, miniTS(), entry.GetMessage(), fileInfo)
+        fmt.Fprintf(b, "\x1b[%dm %s%-44s  (%s)[%04d]\x1b[0m", levelColor, levelText, entry.GetMessage(), entry.GetData()[moduleKey], miniTS())
     } else {
-        fmt.Fprintf(b, "\x1b[%dm %s[%s] %-44s %s \x1b[0m", levelColor, levelText, entry.GetTime().Format(timestampFormat), entry.GetMessage(), fileInfo)
+        fmt.Fprintf(b, "\x1b[%dm %s %-44s  (%s)[%s]\x1b[0m", levelColor, levelText, entry.GetMessage(), entry.GetData()[moduleKey], entry.GetTime().Format(timestampFormat))
     }
     for _, k := range keys {
         value := fmt.Sprintf("%+v", entry.GetData()[k])
-        if len(value) > 128 {
-            value = value[:128] + "..."
-        }
-        fmt.Fprintf(b, "\n            \x1b[%dm- %-8s = %+v \x1b[0m", gray, k, value)
+        fmt.Fprintf(b, "\n      \x1b[%dm- %-8s = %+v \x1b[0m", gray, k, tripHeadAndTail(value, 128))
     }
 
     jsonRaw := entry.GetJsonRaw()
     if jsonRaw != nil {
         fmt.Fprintf(b, "\x1b[%dm \n%s \x1b[0m", gray, prettyJSON(jsonRaw))
     }
+}
+
+func tripHeadAndTail(src string, count int) string {
+    length := len(src)
+    if length <= count {
+        return src
+    }
+
+    if count%2 != 0 {
+        count ++
+    }
+    return src[:count/2] +"..." + src[length-count/2:length-1]
 }
 
 func needsQuoting(text string) bool {

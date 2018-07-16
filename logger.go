@@ -7,6 +7,7 @@ import (
     "regexp"
     "sync"
     "encoding/json"
+    "strings"
 )
 
 var loggerCallDepth = 5
@@ -16,10 +17,6 @@ type Logger struct {
     // file, or leave it default which is `os.Stderr`. You can also set this to
     // something more adventorous, such as logging to Kafka.
     Out io.Writer
-    // Hooks for the logger instance. These allow firing events based on logging
-    // levels and log entries. For example, to send errors to an error tracking
-    // service, log to StatsD or dump the core on fatal errors.
-    Hooks LevelHooks
     // All log entries pass through the formatter before logged to Out. The
     // included formatters are `TextFormatter` and `JSONFormatter` for which
     // TextFormatter is the default. In development (when a TTY is attached) it
@@ -35,6 +32,8 @@ type Logger struct {
     mu MutexWrap
     // Reusable empty entry
     entryPool sync.Pool
+
+    moduleNames []string
 }
 
 type MutexWrap struct {
@@ -70,12 +69,28 @@ func (mw *MutexWrap) Disable() {
 //    }
 //
 // It's recommended to make this a global instance called `log`.
-func New() *Logger {
+func New(moduleNames ...string) *Logger {
+    if moduleNames == nil || len(moduleNames) <= 0 {
+        moduleNames = []string{"main"}
+    }
+
     return &Logger{
-        Out:       os.Stderr,
-        Formatter: new(TextFormatter),
-        Hooks:     make(LevelHooks),
-        Level:     InfoLevel,
+        Out:         os.Stderr,
+        Formatter:   new(TextFormatter),
+        Level:       InfoLevel,
+        moduleNames: moduleNames,
+    }
+}
+
+func (logger *Logger) Sub(moduleNames ...string) *Logger {
+    if moduleNames == nil || len(moduleNames) <= 0 {
+        return logger
+    }
+    return &Logger{
+        Out:         os.Stderr,
+        Formatter:   new(TextFormatter),
+        Level:       InfoLevel,
+        moduleNames: append(logger.moduleNames, moduleNames...),
     }
 }
 
@@ -84,7 +99,7 @@ func (logger *Logger) newEntry() *Entry {
     if ok {
         return entry
     }
-    return NewEntry(logger)
+    return NewEntry(logger, logger.moduleNames...)
 }
 
 func (logger *Logger) releaseEntry(entry *Entry) {
@@ -103,6 +118,34 @@ func (logger *Logger) WithJsonRaw(bs []byte) *Entry {
     entry := logger.newEntry()
     defer logger.releaseEntry(entry)
     return entry.WithJsonRaw(bs)
+}
+
+func (logger *Logger) WithMultiLines(key, longStr string) *Entry {
+    entry := logger.newEntry()
+    defer logger.releaseEntry(entry)
+    fields := make(Fields)
+    lns := strings.Split(longStr, "\n")
+    for index, ln := range lns {
+        if len(ln) <= 0 {
+            continue
+        }
+        fields[fmt.Sprintf("%s-%d", key, index)] = ln
+    }
+    return entry.WithFields(fields)
+}
+
+func (logger *Logger) WithLongString(key, longStr, sep string) *Entry {
+    entry := logger.newEntry()
+    defer logger.releaseEntry(entry)
+    fields := make(Fields)
+    lns := strings.Split(longStr, sep)
+    for index, ln := range lns {
+        if len(ln) <= 0 {
+            continue
+        }
+        fields[fmt.Sprintf("%s-%d", key, index)] = ln
+    }
+    return entry.WithFields(fields)
 }
 
 // Adds a field to the log entry, note that it doesn't log until you call
@@ -226,7 +269,6 @@ func (logger *Logger) Fatalf(format string, args ...interface{}) {
         entry.log(loggerCallDepth, FatalLevel, fmt.Sprintf(format, args...))
         logger.releaseEntry(entry)
     }
-    Exit(1)
 }
 
 func (logger *Logger) Panicf(format string, args ...interface{}) {
@@ -281,7 +323,6 @@ func (logger *Logger) Fatal(args ...interface{}) {
         entry.log(loggerCallDepth, FatalLevel, fmt.Sprint(args...))
         logger.releaseEntry(entry)
     }
-    Exit(1)
 }
 
 func (logger *Logger) Panic(args ...interface{}) {
@@ -344,7 +385,6 @@ func (logger *Logger) Fatalln(args ...interface{}) {
         entry.log(loggerCallDepth, FatalLevel, fmt.Sprintln(args...))
         logger.releaseEntry(entry)
     }
-    Exit(1)
 }
 
 func (logger *Logger) Panicln(args ...interface{}) {

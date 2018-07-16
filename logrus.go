@@ -16,20 +16,20 @@ type Level uint8
 func (level Level) String() string {
     switch level {
     case DebugLevel:
-        return "     debug"
+        return "     "
     case InfoLevel:
-        return "---> info"
+        return "---> "
     case WarnLevel:
-        return "===> warning"
+        return "**** "
     case ErrorLevel:
-        return "**** error"
+        return ">>>> "
     case FatalLevel:
-        return "**** fatal"
+        return ">>>> "
     case PanicLevel:
-        return "**** panic"
+        return ">>>> "
     }
 
-    return "unknown"
+    return "     "
 }
 
 // ParseLevel takes a string level and returns the Logrus log level constant.

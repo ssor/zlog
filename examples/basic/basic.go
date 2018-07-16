@@ -2,6 +2,7 @@ package main
 
 import (
     "github.com/ssor/zlog"
+    "time"
 )
 
 var log = zlog.New()
@@ -13,15 +14,11 @@ func init() {
 }
 
 func main() {
-
-    defer func() {
-        err := recover()
-        if err != nil {
-            log.WithFields(zlog.Fields{
-                "omg":    true,
-                "err":    err,
-                "number": 100,
-            }).Fatal("The ice breaks!")
+    go func() {
+        ticker := time.NewTicker(3 * time.Second)
+        for {
+            <-ticker.C
+            zlog.Info("ticking")
         }
     }()
 
@@ -60,9 +57,17 @@ func main() {
         "level1-1": 10000,
     }
     log.WithStruct(obj).Debug("try struct print")
+    log.WithStruct(obj).Info("try struct print")
+
+    log.WithMultiLines("long", "例如，下面的命令输出一个 “Hello World”，之后终止容器。\n 例如，下面的命令输出一个 “Hello World”，之后终止容器。\n").Info("try long")
+
+    zlog.DumpStacks()
 
     log.WithFields(zlog.Fields{
         "animal": "orca",
         "size":   9009,
     }).Panic("It's over 9000!")
+
+    child := log.Sub("basic")
+    child.Info("This a child log")
 }

@@ -4,6 +4,8 @@ import (
     "io"
     "log"
     "encoding/json"
+    "strings"
+    "fmt"
 )
 
 var (
@@ -51,16 +53,13 @@ func GetLevel() Level {
     return std.Level
 }
 
-// AddHook adds a hook to the standard logger hooks.
-func AddHook(hook Hook) {
-    std.mu.Lock()
-    defer std.mu.Unlock()
-    std.Hooks.Add(hook)
-}
-
 // WithError creates an entry from the standard logger and adds an error to it, using the value defined in ErrorKey as key.
 func WithError(err error) *Entry {
     return std.WithField(ErrorKey, err)
+}
+
+func DumpStacks() {
+    dumpStacks()
 }
 
 // WithField creates an entry from the standard logger and adds a field to
@@ -70,6 +69,31 @@ func WithError(err error) *Entry {
 // or Panic on the Entry it returns.
 func WithField(key string, value interface{}) *Entry {
     return std.WithField(key, value)
+}
+
+func WithMultiLines(key, longStr string) *Entry {
+    var entry *Entry
+    lns := strings.Split(longStr, "\n")
+    for index, ln := range lns {
+        if len(ln) <= 0 {
+            continue
+        }
+        entry = std.WithField(fmt.Sprintf("%s-%d", key, index), ln)
+    }
+    return entry
+}
+
+func WithLongString(key, longStr, sep string) *Entry {
+    var entry *Entry
+    lns := strings.Split(longStr, sep)
+    for index, ln := range lns {
+        if len(ln) <= 0 {
+            continue
+        }
+
+        entry = std.WithField(fmt.Sprintf("%s-%d", key, index), ln)
+    }
+    return entry
 }
 
 func WithStruct(value interface{}) *Entry {

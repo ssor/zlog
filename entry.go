@@ -6,6 +6,7 @@ import (
     "os"
     "sync"
     "time"
+    "strings"
 )
 
 var entryCallDepth = 4
@@ -19,6 +20,7 @@ func init() {
     }
 }
 
+var moduleKey = "moduleKeyZlog"
 // Defines the key when adding errors using WithError.
 var ErrorKey = "error"
 
@@ -47,12 +49,24 @@ type Entry struct {
     JsonRawList []byte
 }
 
-func NewEntry(logger *Logger) *Entry {
-    return &Entry{
+func NewEntry(logger *Logger, moduleNames ...string) *Entry {
+    if moduleNames == nil || len(moduleNames) <= 0 {
+        moduleNames = []string{"main"}
+    }
+
+    entry := &Entry{
         Logger: logger,
         // Default is three fields, give a little extra room
         Data: make(Fields, 5),
     }
+    entry.Data[moduleKey] = strings.Join(moduleNames, "/")
+    return entry
+}
+
+func (entry *Entry) Sub(moduleNames ...string) *Entry {
+    names := []string{entry.Data[moduleKey].(string)}
+    names = append(names, moduleNames...)
+    return NewEntry(entry.Logger, names...)
 }
 
 // Returns the string representation from the reader and ultimately the
@@ -92,6 +106,26 @@ func (entry *Entry) WithFields(fields Fields) *Entry {
     return &Entry{Logger: entry.Logger, Data: data}
 }
 
+func (entry *Entry) WithMultiLines(key, longStr string) *Entry {
+    lns := strings.Split(longStr, "\n")
+    data := make(Fields, len(entry.Data)+len(lns))
+    for k, v := range entry.Data {
+        data[k] = v
+    }
+    for index, ln := range lns {
+        if len(ln) <= 0 {
+            continue
+        }
+        data[fmt.Sprintf("%s-%d", key, index)] = ln
+    }
+    return &Entry{Logger: entry.Logger, Data: data}
+}
+
+func (entry *Entry) WithLongString(key, longStr, sep string) *Entry {
+    longStr = strings.Replace(longStr, sep, "\n", -1)
+    return entry.WithMultiLines(key, longStr)
+}
+
 // This function is not declared with a pointer value because otherwise
 // race conditions will occur when using multiple goroutines
 func (entry Entry) log(callDepth int, level Level, msg string) {
@@ -100,11 +134,6 @@ func (entry Entry) log(callDepth int, level Level, msg string) {
     entry.Level = level
     entry.Message = msg
 
-    if err := entry.Logger.Hooks.Fire(level, &entry); err != nil {
-        entry.Logger.mu.Lock()
-        fmt.Fprintf(os.Stderr, "Failed to fire hook: %v\n", err)
-        entry.Logger.mu.Unlock()
-    }
     buffer = bufferPool.Get().(*bytes.Buffer)
     buffer.Reset()
     defer bufferPool.Put(buffer)
@@ -127,9 +156,9 @@ func (entry Entry) log(callDepth int, level Level, msg string) {
     // To avoid Entry#log() returning a value that only would make sense for
     // panic() to use in Entry#Panic(), we avoid the allocation by checking
     // directly here.
-    if level <= PanicLevel {
-        panic(&entry)
-    }
+    //if level <= PanicLevel {
+    //    panic(&entry)
+    //}
 }
 
 func (entry *Entry) Debug(args ...interface{}) {
@@ -168,14 +197,13 @@ func (entry *Entry) Fatal(args ...interface{}) {
     if entry.Logger.Level >= FatalLevel {
         entry.log(entryCallDepth, FatalLevel, fmt.Sprint(args...))
     }
-    Exit(1)
 }
 
 func (entry *Entry) Panic(args ...interface{}) {
     if entry.Logger.Level >= PanicLevel {
         entry.log(entryCallDepth, PanicLevel, fmt.Sprint(args...))
     }
-    panic(fmt.Sprint(args...))
+    //panic(fmt.Sprint(args...))
 }
 
 // Entry Printf family functions
@@ -216,7 +244,6 @@ func (entry *Entry) Fatalf(format string, args ...interface{}) {
     if entry.Logger.Level >= FatalLevel {
         entry.Fatal(fmt.Sprintf(format, args...))
     }
-    Exit(1)
 }
 
 func (entry *Entry) Panicf(format string, args ...interface{}) {
@@ -263,7 +290,6 @@ func (entry *Entry) Fatalln(args ...interface{}) {
     if entry.Logger.Level >= FatalLevel {
         entry.Fatal(entry.sprintlnn(args...))
     }
-    Exit(1)
 }
 
 func (entry *Entry) Panicln(args ...interface{}) {

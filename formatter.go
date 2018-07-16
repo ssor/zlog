@@ -5,7 +5,7 @@ import (
     "bytes"
 )
 
-const DefaultTimestampFormat = time.RFC3339
+const DefaultTimestampFormat = "2006-01-02 15:04:05"
 
 type FormatterInput interface {
     GetBuffer() *bytes.Buffer
