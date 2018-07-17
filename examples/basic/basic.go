@@ -23,7 +23,6 @@ func main() {
     }()
 
     zlog.SetLevel(zlog.DebugLevel)
-    zlog.SetLevel(zlog.InfoLevel)
     zlog.Debug("debug test")
     zlog.Info("info test")
 
@@ -47,7 +46,7 @@ func main() {
     }).Debug("Temperature changes")
 
     jsonRaw := []byte(`{"actions":{},"baseType":"error","code":"Forbidden","links":{},"message":"projects.management.cattle.io \"p-t4hzw\" is forbidden: User \"u-btx2s\" cannot get projects.management.cattle.io in the namespace \"c-g9v62\"","status":403,"type":"error"}`)
-    log.WithJsonRaw(jsonRaw).Debug("try json print")
+    log.WithJsonRaw(jsonRaw).Info("try raw json print")
 
     obj := map[string]interface{}{
         "level1": map[string]interface{}{

@@ -6,11 +6,14 @@ import (
     "encoding/json"
     "strings"
     "fmt"
+    "path"
+    "os"
 )
 
 var (
     // std is the name of the standard logger in stdlib `log`
-    std = New()
+    std    = New()
+    gopath = path.Join(os.Getenv("GOPATH"), "src")
 )
 
 func StandardLogger() *Logger {

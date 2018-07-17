@@ -58,23 +58,26 @@ type TextFormatter struct {
 }
 
 func dumpStacks() {
+
+    prefix := "      "
     buf := make([]byte, 16384)
     buf = buf[:runtime.Stack(buf, true)]
     results := bytes.Split(buf, []byte{0xa})
     //spew.Dump(results)
     if len(results) > 6 {
-        fmt.Println("=== BEGIN goroutine stack dump ===")
+        fmt.Println(prefix + "=== BEGIN goroutine stack dump ===")
         for i := 6; i < len(results); i += 1 {
             if len(results[i]) <= 0 { //do not print all goroutine stacks
                 break
             }
             if i%2 == 0 { //just print code line
-                fmt.Printf("%d: %s\n", i/2, results[i])
+                content := strings.Replace(string(results[i]), gopath, "", 1)
+                fmt.Printf("%s%s: %s\n", prefix, "- ", strings.TrimSpace(content))
             }
         }
-        fmt.Println("=== END goroutine stack dump ===")
+        fmt.Println(prefix + "=== END goroutine stack dump ===")
     } else {
-        fmt.Println("=== no stack to print ===")
+        fmt.Println(prefix + "=== no stack to print ===")
     }
 }
 
@@ -108,18 +111,7 @@ func (f *TextFormatter) Format(entry FormatterInput, callDepth int) ([]byte, err
     if isColored {
         f.printColored(b, entry, keys, timestampFormat)
     } else {
-        //f.appendKeyValue(b, "level", entry.GetLevel().String())
-
         fmt.Fprintf(b, "%s%-44s  (%s)[%s]", entry.GetLevel().String(), entry.GetMessage(), entry.GetData()[moduleKey], entry.GetTime().Format(timestampFormat))
-        //if entry.GetMessage() != "" {
-        //    f.appendKeyValue(b, "msg", entry.GetMessage())
-        //}
-        //f.appendKeyValue(b, "", fileInfo)
-        //f.appendKeyValue(b, "path", entry.GetData()[moduleKey])
-
-        //if !f.DisableTimestamp {
-        //    f.appendKeyValue(b, "time", entry.GetTime().Format(timestampFormat))
-        //}
 
         for _, key := range keys {
             if key == moduleKey {
@@ -200,7 +192,7 @@ func tripHeadAndTail(src string, count int) string {
     if count%2 != 0 {
         count ++
     }
-    return src[:count/2] +"..." + src[length-count/2:length-1]
+    return src[:count/2] + "..." + src[length-count/2:length-1]
 }
 
 func needsQuoting(text string) bool {
@@ -243,11 +235,12 @@ func (f *TextFormatter) appendKeyValue(b *bytes.Buffer, key string, value interf
 }
 
 func prettyJSON(js []byte) string {
+    prefix := "      "
     var buf bytes.Buffer
-    err := json.Indent(&buf, js, "", "  ")
+    err := json.Indent(&buf, js, prefix, "  ")
     if err != nil {
         return "JSON parse error: " + err.Error()
     }
     s := string(buf.Bytes())
-    return s
+    return prefix + s
 }
