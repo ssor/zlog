@@ -173,6 +173,9 @@ func (f *TextFormatter) printColored(b *bytes.Buffer, entry FormatterInput, keys
         fmt.Fprintf(b, "\x1b[%dm %s %-44s  (%s)[%s]\x1b[0m", levelColor, levelText, entry.GetMessage(), entry.GetData()[moduleKey], entry.GetTime().Format(timestampFormat))
     }
     for _, k := range keys {
+        if k == moduleKey {
+            continue
+        }
         value := fmt.Sprintf("%+v", entry.GetData()[k])
         fmt.Fprintf(b, "\n      \x1b[%dm- %-8s = %+v \x1b[0m", gray, k, tripHeadAndTail(value, 128))
     }
