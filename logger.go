@@ -239,6 +239,14 @@ func (logger *Logger) Printf(format string, args ...interface{}) {
     logger.releaseEntry(entry)
 }
 
+func (logger *Logger) Highlightf(format string, args ...interface{}) {
+    logger.Warnf(format, args)
+}
+
+func (logger *Logger) Highlight(args ...interface{}) {
+    logger.Warn(args)
+}
+
 func (logger *Logger) Warnf(format string, args ...interface{}) {
     if logger.Level >= WarnLevel {
         entry := logger.newEntry()

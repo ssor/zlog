@@ -152,6 +152,14 @@ func Info(args ...interface{}) {
     std.Info(args...)
 }
 
+func Highlight(args ...interface{}) {
+    std.Warn(args...)
+}
+
+func Highlightf(format string, args ...interface{}) {
+    std.Warnf(format, args...)
+}
+
 // Warn logs a message at level Warn on the standard logger.
 func Warn(args ...interface{}) {
     std.Warn(args...)
