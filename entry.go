@@ -9,7 +9,7 @@ import (
     "strings"
 )
 
-var entryCallDepth = 4
+//var entryCallDepth = 4
 var bufferPool *sync.Pool
 
 func init() {
@@ -72,7 +72,7 @@ func (entry *Entry) Sub(moduleNames ...string) *Entry {
 // Returns the string representation from the reader and ultimately the
 // formatter.
 func (entry *Entry) String() (string, error) {
-    serialized, err := entry.Logger.Formatter.Format(entry, entryCallDepth)
+    serialized, err := entry.Logger.Formatter.Format(entry, 0)
     if err != nil {
         return "", err
     }
@@ -163,7 +163,7 @@ func (entry Entry) log(callDepth int, level Level, msg string) {
 
 func (entry *Entry) Debug(args ...interface{}) {
     if entry.Logger.Level >= DebugLevel {
-        entry.log(entryCallDepth, DebugLevel, fmt.Sprint(args...))
+        entry.log(0, DebugLevel, fmt.Sprint(args...))
     }
 }
 
@@ -173,13 +173,13 @@ func (entry *Entry) Print(args ...interface{}) {
 
 func (entry *Entry) Info(args ...interface{}) {
     if entry.Logger.Level >= InfoLevel {
-        entry.log(entryCallDepth, InfoLevel, fmt.Sprint(args...))
+        entry.log(0, InfoLevel, fmt.Sprint(args...))
     }
 }
 
 func (entry *Entry) Warn(args ...interface{}) {
     if entry.Logger.Level >= WarnLevel {
-        entry.log(entryCallDepth, WarnLevel, fmt.Sprint(args...))
+        entry.log(0, WarnLevel, fmt.Sprint(args...))
     }
 }
 
@@ -189,19 +189,19 @@ func (entry *Entry) Warning(args ...interface{}) {
 
 func (entry *Entry) Error(args ...interface{}) {
     if entry.Logger.Level >= ErrorLevel {
-        entry.log(entryCallDepth, ErrorLevel, fmt.Sprint(args...))
+        entry.log(0, ErrorLevel, fmt.Sprint(args...))
     }
 }
 
 func (entry *Entry) Fatal(args ...interface{}) {
     if entry.Logger.Level >= FatalLevel {
-        entry.log(entryCallDepth, FatalLevel, fmt.Sprint(args...))
+        entry.log(0, FatalLevel, fmt.Sprint(args...))
     }
 }
 
 func (entry *Entry) Panic(args ...interface{}) {
     if entry.Logger.Level >= PanicLevel {
-        entry.log(entryCallDepth, PanicLevel, fmt.Sprint(args...))
+        entry.log(0, PanicLevel, fmt.Sprint(args...))
     }
     //panic(fmt.Sprint(args...))
 }

@@ -12,8 +12,9 @@ import (
 
 var (
     // std is the name of the standard logger in stdlib `log`
-    std    = New()
-    gopath = path.Join(os.Getenv("GOPATH"), "src")
+    std                      = New()
+    gopath                   = path.Join(os.Getenv("GOPATH"), "src")
+    exportedDefaultCallDepth = 6
 )
 
 func StandardLogger() *Logger {
@@ -153,7 +154,7 @@ func Info(args ...interface{}) {
 }
 
 func Highlight(args ...interface{}) {
-    std.Warn(args...)
+    std.highlight(exportedDefaultCallDepth, args...)
 }
 
 func Highlightf(format string, args ...interface{}) {

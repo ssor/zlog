@@ -106,53 +106,66 @@ func (f *TextFormatter) Format(entry FormatterInput, callDepth int) ([]byte, err
     if timestampFormat == "" {
         timestampFormat = DefaultTimestampFormat
     }
-    //fileInfo := formatShortFile(callDepth)
+    //fileInfo := formatShortFile(loggerDefaultCallDepth)
     //isColored = false
     if isColored {
-        f.printColored(b, entry, keys, timestampFormat)
+        f.printColored(b, entry, keys, timestampFormat, callDepth)
     } else {
-        fmt.Fprintf(b, "%s%-44s  (%s)[%s]", entry.GetLevel().String(), entry.GetMessage(), entry.GetData()[moduleKey], entry.GetTime().Format(timestampFormat))
-
-        for _, key := range keys {
-            if key == moduleKey {
-                continue
-            }
-            //f.appendKeyValue(b, key, )
-            value := fmt.Sprintf("%+v", entry.GetData()[key])
-            fmt.Fprintf(b, "\n     - %-8s = %+v", key, tripHeadAndTail(value, 128))
-        }
-
-        jsonRaw := entry.GetJsonRaw()
-        if jsonRaw != nil {
-            fmt.Fprintf(b, "\n%s", prettyJSON(jsonRaw))
-        }
+        f.printPlain(b, entry, keys, timestampFormat, callDepth)
     }
 
     b.WriteByte('\n')
     return b.Bytes(), nil
 }
 
-//
-//func formatShortFile(callDepth int) string {
-//    _, file, line, ok := runtime.Caller(callDepth)
-//    if !ok {
-//        file = "???"
-//        line = 0
-//        return "???:0"
-//    }
-//
-//    short := ""
-//    for i := len(file) - 1; i > 0; i-- {
-//        if file[i] == '/' {
-//            short = file[i+1:]
-//            break
-//        }
-//    }
-//    //DumpStacks()
-//    return fmt.Sprintf(" [%s:%-3d]", short, line)
-//}
+func (f *TextFormatter) printPlain(b *bytes.Buffer, entry FormatterInput, keys []string, timestampFormat string, callDepth int) {
+    switch entry.GetLevel() {
+    case DebugLevel:
+    case WarnLevel:
+    case ErrorLevel, FatalLevel, PanicLevel:
+    default:
+    }
+    codeSrc := entry.GetData()[moduleKey]
+    if callDepth > 0 {
+        codeSrc = formatShortFile(callDepth)
+    }
+    fmt.Fprintf(b, "%s%-44s  (%s)[%s]", entry.GetLevel().String(), entry.GetMessage(), codeSrc, entry.GetTime().Format(timestampFormat))
 
-func (f *TextFormatter) printColored(b *bytes.Buffer, entry FormatterInput, keys []string, timestampFormat string) {
+    for _, key := range keys {
+        if key == moduleKey {
+            continue
+        }
+        //f.appendKeyValue(b, key, )
+        value := fmt.Sprintf("%+v", entry.GetData()[key])
+        fmt.Fprintf(b, "\n     - %-8s = %+v", key, tripHeadAndTail(value, 128))
+    }
+
+    jsonRaw := entry.GetJsonRaw()
+    if jsonRaw != nil {
+        fmt.Fprintf(b, "\n%s", prettyJSON(jsonRaw))
+    }
+}
+
+func formatShortFile(callDepth int) string {
+    _, file, line, ok := runtime.Caller(callDepth)
+    if !ok {
+        file = "???"
+        line = 0
+        return "???:0"
+    }
+
+    short := strings.Replace(file, gopath, "$GOPATH", 1)
+    //for i := len(file) - 1; i > 0; i-- {
+    //    if file[i] == '/' {
+    //        short = file[i+1:]
+    //        break
+    //    }
+    //}
+
+    return fmt.Sprintf("%s:%-3d", short, line)
+}
+
+func (f *TextFormatter) printColored(b *bytes.Buffer, entry FormatterInput, keys []string, timestampFormat string, callDepth int) {
     var levelColor int
     switch entry.GetLevel() {
     case DebugLevel:
@@ -165,12 +178,16 @@ func (f *TextFormatter) printColored(b *bytes.Buffer, entry FormatterInput, keys
         levelColor = blue
     }
 
+    codeSrc := entry.GetData()[moduleKey]
+    if callDepth > 0 {
+        codeSrc = formatShortFile(callDepth)
+    }
     levelText := strings.ToUpper(entry.GetLevel().String())
 
     if !f.FullTimestamp {
-        fmt.Fprintf(b, "\x1b[%dm %s%-44s  (%s)[%04d]\x1b[0m", levelColor, levelText, entry.GetMessage(), entry.GetData()[moduleKey], miniTS())
+        fmt.Fprintf(b, "\x1b[%dm %s%-44s  (%s)[%04d]\x1b[0m", levelColor, levelText, entry.GetMessage(), codeSrc, miniTS())
     } else {
-        fmt.Fprintf(b, "\x1b[%dm %s %-44s  (%s)[%s]\x1b[0m", levelColor, levelText, entry.GetMessage(), entry.GetData()[moduleKey], entry.GetTime().Format(timestampFormat))
+        fmt.Fprintf(b, "\x1b[%dm %s %-44s  (%s)[%s]\x1b[0m", levelColor, levelText, entry.GetMessage(), codeSrc, entry.GetTime().Format(timestampFormat))
     }
     for _, k := range keys {
         if k == moduleKey {

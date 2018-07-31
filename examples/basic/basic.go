@@ -69,4 +69,7 @@ func main() {
 
     child := log.Sub("basic")
     child.Info("This a child log")
+
+    log.Highlight("this is highlighted line")
+    zlog.Highlight("this is highlighted line too")
 }
