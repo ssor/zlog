@@ -29,7 +29,7 @@ func (level Level) String() string {
         return ">>>> "
     }
 
-    return "     "
+    return "NotDefinedLevel"
 }
 
 // ParseLevel takes a string level and returns the Logrus log level constant.

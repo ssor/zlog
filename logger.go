@@ -82,6 +82,10 @@ func New(moduleNames ...string) *Logger {
     }
 }
 
+func (logger *Logger) SetLevel(level Level) {
+    logger.Level = level
+}
+
 func (logger *Logger) Sub(moduleNames ...string) *Logger {
     if moduleNames == nil || len(moduleNames) <= 0 {
         return logger
@@ -89,7 +93,7 @@ func (logger *Logger) Sub(moduleNames ...string) *Logger {
     return &Logger{
         Out:         os.Stderr,
         Formatter:   new(TextFormatter),
-        Level:       InfoLevel,
+        Level:       logger.Level,
         moduleNames: append(logger.moduleNames, moduleNames...),
     }
 }
@@ -217,7 +221,7 @@ func (p *PrefixStrCmp) Parse(s *string) (Level, error) {
 }
 
 func (logger *Logger) Debugf(format string, args ...interface{}) {
-    if logger.Level >= DebugLevel {
+    if logger.Level <= DebugLevel {
         entry := logger.newEntry()
         //entry.Debugf(format, args...)
         entry.log(0, DebugLevel, fmt.Sprintf(format, args...))
@@ -226,7 +230,7 @@ func (logger *Logger) Debugf(format string, args ...interface{}) {
 }
 
 func (logger *Logger) Infof(format string, args ...interface{}) {
-    if logger.Level >= InfoLevel {
+    if logger.Level <= InfoLevel {
         entry := logger.newEntry()
         entry.log(0, InfoLevel, fmt.Sprintf(format, args...))
         logger.releaseEntry(entry)
@@ -239,8 +243,12 @@ func (logger *Logger) Printf(format string, args ...interface{}) {
     logger.releaseEntry(entry)
 }
 
+func (logger *Logger) Highlightf(format string, args ...interface{}) {
+    logger.highlight(loggerDefaultCallDepth, fmt.Sprintf(format, args...))
+}
+
 func (logger *Logger) Highlight(args ...interface{}) {
-    logger.highlight(loggerDefaultCallDepth, args)
+    logger.highlight(loggerDefaultCallDepth, args...)
 }
 
 func (logger *Logger) highlight(callDepth int, args ...interface{}) {
@@ -290,7 +298,7 @@ func (logger *Logger) Panicf(format string, args ...interface{}) {
 }
 
 func (logger *Logger) Debug(args ...interface{}) {
-    if logger.Level >= DebugLevel {
+    if logger.Level <= DebugLevel {
         entry := logger.newEntry()
         entry.log(0, DebugLevel, fmt.Sprint(args...))
         logger.releaseEntry(entry)
@@ -298,7 +306,7 @@ func (logger *Logger) Debug(args ...interface{}) {
 }
 
 func (logger *Logger) Info(args ...interface{}) {
-    if logger.Level >= InfoLevel {
+    if logger.Level <= InfoLevel {
         entry := logger.newEntry()
         entry.log(0, InfoLevel, fmt.Sprint(args...))
         logger.releaseEntry(entry)

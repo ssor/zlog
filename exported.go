@@ -158,7 +158,7 @@ func Highlight(args ...interface{}) {
 }
 
 func Highlightf(format string, args ...interface{}) {
-    std.Warnf(format, args...)
+    std.highlight(exportedDefaultCallDepth, fmt.Sprintf(format, args...))
 }
 
 // Warn logs a message at level Warn on the standard logger.

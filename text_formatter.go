@@ -65,7 +65,8 @@ func dumpStacks() {
     results := bytes.Split(buf, []byte{0xa})
     //spew.Dump(results)
     if len(results) > 6 {
-        fmt.Println(prefix + "=== BEGIN goroutine stack dump ===")
+        fmt.Println(prefix + "=== BEGIN stack dump ===")
+        fmt.Println()
         for i := 6; i < len(results); i += 1 {
             if len(results[i]) <= 0 { //do not print all goroutine stacks
                 break
@@ -75,7 +76,8 @@ func dumpStacks() {
                 fmt.Printf("%s%s: %s\n", prefix, "- ", strings.TrimSpace(content))
             }
         }
-        fmt.Println(prefix + "=== END goroutine stack dump ===")
+        fmt.Println()
+        fmt.Println(prefix + "=== END   stack dump ===")
     } else {
         fmt.Println(prefix + "=== no stack to print ===")
     }
