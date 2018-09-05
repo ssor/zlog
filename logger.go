@@ -298,7 +298,7 @@ func (logger *Logger) Panicf(format string, args ...interface{}) {
 }
 
 func (logger *Logger) Debug(args ...interface{}) {
-    if logger.Level <= DebugLevel {
+    if logger.Level >= DebugLevel {
         entry := logger.newEntry()
         entry.log(0, DebugLevel, fmt.Sprint(args...))
         logger.releaseEntry(entry)
@@ -306,7 +306,7 @@ func (logger *Logger) Debug(args ...interface{}) {
 }
 
 func (logger *Logger) Info(args ...interface{}) {
-    if logger.Level <= InfoLevel {
+    if logger.Level >= InfoLevel {
         entry := logger.newEntry()
         entry.log(0, InfoLevel, fmt.Sprint(args...))
         logger.releaseEntry(entry)
