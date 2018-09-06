@@ -221,7 +221,7 @@ func (p *PrefixStrCmp) Parse(s *string) (Level, error) {
 }
 
 func (logger *Logger) Debugf(format string, args ...interface{}) {
-    if logger.Level <= DebugLevel {
+    if logger.Level >= DebugLevel {
         entry := logger.newEntry()
         //entry.Debugf(format, args...)
         entry.log(0, DebugLevel, fmt.Sprintf(format, args...))
@@ -230,7 +230,7 @@ func (logger *Logger) Debugf(format string, args ...interface{}) {
 }
 
 func (logger *Logger) Infof(format string, args ...interface{}) {
-    if logger.Level <= InfoLevel {
+    if logger.Level >= InfoLevel {
         entry := logger.newEntry()
         entry.log(0, InfoLevel, fmt.Sprintf(format, args...))
         logger.releaseEntry(entry)
