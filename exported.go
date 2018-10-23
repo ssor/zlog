@@ -1,13 +1,13 @@
 package zlog
 
 import (
+    "encoding/json"
+    "fmt"
     "io"
     "log"
-    "encoding/json"
-    "strings"
-    "fmt"
-    "path"
     "os"
+    "path"
+    "strings"
 )
 
 var (
@@ -151,6 +151,30 @@ func Print(args ...interface{}) {
 // Info logs a message at level Info on the standard logger.
 func Info(args ...interface{}) {
     std.Info(args...)
+}
+
+func Pass(args ...interface{}) {
+    std.Pass(args...)
+}
+
+func Passf(format string, args ...interface{}) {
+    std.Passf(format, args...)
+}
+
+func Failed(args ...interface{}) {
+    std.Failed(args...)
+}
+
+func Failedf(format string, args ...interface{}) {
+    std.Failedf(format, args...)
+}
+
+func Success(args ...interface{}) {
+    std.Success(args...)
+}
+
+func Successf(format string, args ...interface{}) {
+    std.Successf(format, args...)
 }
 
 func Highlight(args ...interface{}) {
