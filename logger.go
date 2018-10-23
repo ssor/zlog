@@ -1,13 +1,13 @@
 package zlog
 
 import (
+    "encoding/json"
     "fmt"
     "io"
     "os"
     "regexp"
-    "sync"
-    "encoding/json"
     "strings"
+    "sync"
 )
 
 var loggerDefaultCallDepth = 6
@@ -303,6 +303,43 @@ func (logger *Logger) Debug(args ...interface{}) {
         entry.log(0, DebugLevel, fmt.Sprint(args...))
         logger.releaseEntry(entry)
     }
+}
+
+func (logger *Logger) Passf(format string, args ...interface{}) {
+    entry := logger.newEntry()
+    entry.log(0, InfoLevel, fmt.Sprintf("[PASS]"+format, args...))
+    logger.releaseEntry(entry)
+}
+
+func (logger *Logger) Pass(args ...interface{}) {
+    entry := logger.newEntry()
+    args = append([]interface{}{"[PASS]"}, args...)
+    entry.log(0, InfoLevel, fmt.Sprint(args...))
+    logger.releaseEntry(entry)
+}
+func (logger *Logger) Failedf(format string, args ...interface{}) {
+    entry := logger.newEntry()
+    entry.log(0, ErrorLevel, fmt.Sprintf("[FAIL]"+format, args...))
+    logger.releaseEntry(entry)
+}
+
+func (logger *Logger) Failed(args ...interface{}) {
+    entry := logger.newEntry()
+    args = append([]interface{}{"[FAIL]"}, args...)
+    entry.log(0, ErrorLevel, fmt.Sprint(args...))
+    logger.releaseEntry(entry)
+}
+func (logger *Logger) Successf(format string, args ...interface{}) {
+    entry := logger.newEntry()
+    entry.log(0, InfoLevel, fmt.Sprintf("[OK]"+format, args...))
+    logger.releaseEntry(entry)
+}
+
+func (logger *Logger) Success(args ...interface{}) {
+    entry := logger.newEntry()
+    args = append([]interface{}{"[OK]"}, args...)
+    entry.log(0, InfoLevel, fmt.Sprint(args...))
+    logger.releaseEntry(entry)
 }
 
 func (logger *Logger) Info(args ...interface{}) {
