@@ -47,7 +47,7 @@ func main() {
 
 Note that it's completely api-compatible with the stdlib logger, so you can
 replace your `log` imports everywhere with `log "github.com/ssor/zlog"`
-and you'll now have the flexibility of Logrus. You can customize it all you
+and you'll now have the flexibility of Zlog. You can customize it all you
 want:
 
 ```go
@@ -96,7 +96,7 @@ func main() {
 
 #### Fields
 
-Logrus encourages careful, structured logging though logging fields instead of
+Zlog encourages careful, structured logging though logging fields instead of
 long, unparseable error messages. For example, instead of: `log.Fatalf("Failed
 to send event %s to topic %s with key %d")`, you should log the much more
 discoverable:
