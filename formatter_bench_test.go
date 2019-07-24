@@ -71,13 +71,6 @@ func BenchmarkLargeColoredTextFormatter(b *testing.B) {
 	doBenchmark(b, &TextFormatter{ForceColors: true}, largeFields)
 }
 
-func BenchmarkSmallJSONFormatter(b *testing.B) {
-	doBenchmark(b, &JSONFormatter{}, smallFields)
-}
-
-func BenchmarkLargeJSONFormatter(b *testing.B) {
-	doBenchmark(b, &JSONFormatter{}, largeFields)
-}
 
 func doBenchmark(b *testing.B, formatter Formatter, fields Fields) {
 	entry := &Entry{
@@ -89,7 +82,7 @@ func doBenchmark(b *testing.B, formatter Formatter, fields Fields) {
 	var d []byte
 	var err error
 	for i := 0; i < b.N; i++ {
-		d, err = formatter.Format(entry)
+		d, err = formatter.Format(entry,0)
 		if err != nil {
 			b.Fatal(err)
 		}

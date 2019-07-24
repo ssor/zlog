@@ -82,6 +82,13 @@ func New(moduleNames ...string) *Logger {
     }
 }
 
+// SetOutput sets the standard logger output.
+func (logger *Logger) SetOutput(out io.Writer) {
+    logger.mu.Lock()
+    defer logger.mu.Unlock()
+    logger.Out = out
+}
+
 func (logger *Logger) SetLevel(level Level) {
     logger.Level = level
 }
@@ -113,7 +120,7 @@ func (logger *Logger) releaseEntry(entry *Entry) {
 func (logger *Logger) WithStruct(value interface{}) *Entry {
     bs, err := json.Marshal(value)
     if err != nil {
-        return WithError(err)
+        return logger.WithError(err)
     }
     return logger.WithJsonRaw(bs)
 }

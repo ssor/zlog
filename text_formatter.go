@@ -72,8 +72,7 @@ func dumpStacks() {
                 break
             }
             if i%2 == 0 { //just print code line
-                content := strings.Replace(string(results[i]), gopath, "", 1)
-                fmt.Printf("%s%s: %s\n", prefix, "- ", strings.TrimSpace(content))
+                fmt.Printf("%s%s: %s\n", prefix, "- ", strings.TrimSpace(string(results[i])))
             }
         }
         fmt.Println()
@@ -156,15 +155,7 @@ func formatShortFile(callDepth int) string {
         return "???:0"
     }
 
-    short := strings.Replace(file, gopath, "$GOPATH", 1)
-    //for i := len(file) - 1; i > 0; i-- {
-    //    if file[i] == '/' {
-    //        short = file[i+1:]
-    //        break
-    //    }
-    //}
-
-    return fmt.Sprintf("%s:%-3d", short, line)
+    return fmt.Sprintf("%s:%-3d", file, line)
 }
 
 func (f *TextFormatter) printColored(b *bytes.Buffer, entry FormatterInput, keys []string, timestampFormat string, callDepth int) {

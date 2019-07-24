@@ -1,18 +1,10 @@
 package main
 
 import (
+    "fmt"
     "github.com/ssor/zlog"
     "time"
-    "fmt"
 )
-
-var log = zlog.New()
-
-func init() {
-    //log.Formatter = new(zlog.JSONFormatter)
-    log.Formatter = new(zlog.TextFormatter) // default
-    log.Level = zlog.DebugLevel
-}
 
 func main() {
     go func() {
@@ -38,19 +30,19 @@ func main() {
     zlogPrint()
 
     printTitle("MODULE")
-
+    log := zlog.New()
     fmt.Println("------ DebugLevel")
     log.SetLevel(zlog.DebugLevel)
-    modulePrint()
+    modulePrint(log)
     fmt.Println("------ InfoLevel")
     log.SetLevel(zlog.InfoLevel)
-    modulePrint()
+    modulePrint(log)
     fmt.Println("------ WarnLevel")
     log.SetLevel(zlog.WarnLevel)
-    modulePrint()
+    modulePrint(log)
     fmt.Println("------ ErrorLevel")
     log.SetLevel(zlog.ErrorLevel)
-    modulePrint()
+    modulePrint(log)
 
     printTitle("ChildLog")
     child := log.Sub("basic")
@@ -68,7 +60,6 @@ func main() {
 
 func printTitle(title string) {
     fmt.Println()
-    fmt.Println()
     fmt.Println(fmt.Sprintf("------------------------------------------------ %s ------------------------------------------------", title))
     fmt.Println()
 }
@@ -85,7 +76,7 @@ func zlogPrint() {
     fmt.Println()
 }
 
-func modulePrint() {
+func modulePrint(log *zlog.Logger) {
     log.WithFields(zlog.Fields{
         "animal": "walrus",
         "number": 8,

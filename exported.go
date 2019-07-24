@@ -5,15 +5,12 @@ import (
     "fmt"
     "io"
     "log"
-    "os"
-    "path"
     "strings"
 )
 
 var (
     // std is the name of the standard logger in stdlib `log`
     std                      = New()
-    gopath                   = path.Join(os.Getenv("GOPATH"), "src")
     exportedDefaultCallDepth = 6
 )
 
@@ -26,13 +23,6 @@ func SetOutput(out io.Writer) {
     std.mu.Lock()
     defer std.mu.Unlock()
     std.Out = out
-}
-
-// SetFormatter sets the standard logger formatter.
-func SetFormatter(formatter Formatter) {
-    std.mu.Lock()
-    defer std.mu.Unlock()
-    std.Formatter = formatter
 }
 
 func SetPrintLineNumber(b bool) {
